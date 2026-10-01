@@ -32,7 +32,7 @@ Clone the repository and run:
     cd BugForge
     python -m bugforge --help
     python -m bugforge analyze examples/crashes/sample.log
-    python -m bugforge fingerprint examples/crashes/sample.log
+    python -m bugforge fingerprint examples/crashes/sample.log\n    python -m bugforge dashboard
 
 Install as a CLI during development:
 
