@@ -4,16 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bugforge"
-version = "0.1.0"
-description = "Crash analysis and bug reproduction toolkit"
+version = "0.2.0"
+description = "Crash analysis, reproduction and agentic bug investigation toolkit"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
 authors = [{name = "Kritik Bhattarai"}]
 dependencies = []
 
+[project.optional-dependencies]
+mcp = ["mcp>=1.20.0"]
+aws = ["strands-agents>=1.10.0", "boto3>=1.40.0"]
+all = ["mcp>=1.20.0", "strands-agents>=1.10.0", "boto3>=1.40.0"]
+
 [project.scripts]
 bugforge = "bugforge.cli:main"
+bugforge-mcp = "bugforge.mcp_server:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
