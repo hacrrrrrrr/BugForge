@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bugforge"
+version = "0.1.0"
+description = "Crash analysis and bug reproduction toolkit"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [{name = "Kritik Bhattarai"}]
+dependencies = []
+
+[project.scripts]
+bugforge = "bugforge.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
