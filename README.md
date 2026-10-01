@@ -30,7 +30,7 @@ Requirements: Python 3.10+
 
     git clone https://github.com/hacrrrrrrr/BugForge.git
     cd BugForge
-    python -m bugforge --help
+    python -m bugforge --help\n\n## One-command investigation\n\nRun the complete pipeline over a crash directory:\n\n    python -m bugforge investigate examples/demo-crashes\n\nThis produces `summary.json` and `findings.sarif` under `reports/investigation/`.\n\nStart the visual investigation UI:\n\n    python -m bugforge dashboard
 
 Analyze:
 
