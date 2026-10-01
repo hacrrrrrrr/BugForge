@@ -58,6 +58,10 @@ def build_parser():
     p.add_argument("directory")
     p.add_argument("--output", default="reports/investigation")
 
+    p = sub.add_parser("demo", help="Run a polished end-to-end crash investigation demo")
+    p.add_argument("input", nargs="?", default="examples/crashes/sample.log")
+    p.add_argument("--output", default="reports/demo.html")
+
     p = sub.add_parser("dashboard", help="Start the local investigation dashboard")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8080)
@@ -82,6 +86,41 @@ def main(argv=None):
     if args.command == "minimize":
         out = minimize_to_file(args.input, args.command, args.output, args.timeout)
         print(f"[+] Minimized testcase: {out}")
+        return 0
+
+    if args.command == "demo":
+        path = Path(args.input)
+        if not path.is_file():
+            build_parser().error(f"demo input file not found: {path}")
+
+        raw = path.read_text(encoding="utf-8", errors="replace")
+        finding = parse_crash(raw)
+        finding.fingerprint = fingerprint(finding)
+        intelligence = analyze_text(raw)
+        report = build_report(str(path), args.output)
+
+        print("\n=== BugForge AI | End-to-End Investigation Demo ===")
+        print(f"Input:       {path}")
+        print("\n[1/5] Reproduction artifact")
+        print("      ✓ Loaded real crash/reproduction data")
+        print("[2/5] Crash analysis")
+        print(f"      ✓ Crash type: {finding.crash_type}")
+        print(f"      ✓ Signal: {finding.signal or 'N/A'}")
+        print(f"      ✓ Stack frames: {len(finding.frames)}")
+        print("[3/5] Deterministic fingerprint")
+        print(f"      ✓ {finding.fingerprint}")
+        print("[4/5] Crash intelligence")
+        if isinstance(intelligence, dict):
+            for key, value in intelligence.items():
+                print(f"      • {key}: {value}")
+        else:
+            print(f"      • {intelligence}")
+        print("[5/5] Investigation report")
+        print(f"      ✓ {report}")
+        print("\nMCP tools available for agent workflows:")
+        print("      list_reproductions → get_reproduction → analyze_crash")
+        print("      parse_stacktrace → get_fingerprint → generate_report")
+        print("\n✓ Demo completed using the real BugForge analysis engine.")
         return 0
 
     if args.command == "scan":
