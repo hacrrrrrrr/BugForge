@@ -1,0 +1,10 @@
+== BugForge security triage example ==
+AddressSanitizer: heap-buffer-overflow
+Signal: SIGSEGV
+
+#0 vulnerable_parser::read_input()
+#1 parser::decode()
+#2 engine::process()
+#3 main
+
+READ of size 8 at 0x41414141
