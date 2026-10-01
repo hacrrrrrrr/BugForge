@@ -1,0 +1,7 @@
+Fatal error: DCHECK failed
+Signal: SIGABRT
+
+#0 v8::internal::CodeTracer::StreamScope::StreamScope()
+#1 v8::internal::CodeTracer::Scope()
+#2 v8::internal::Isolate::PrintStack()
+#3 main
