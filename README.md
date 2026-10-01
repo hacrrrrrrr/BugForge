@@ -1,5 +1,73 @@
 # BugForge
 
+> **Alexa+ Hackathon Track — Agentic crash investigation through a self-hosted MCP server.**
+
+BugForge is a crash analysis and reproduction toolkit extended with a real **MCP Streamable HTTP server** and optional **Amazon Bedrock + Strands** agent integration. The existing deterministic BugForge pipeline remains the source of technical evidence; the agent layer orchestrates those capabilities for natural-language investigation.
+
+## Hackathon architecture
+
+```
+Alexa+ / MCP Client
+        │ Streamable HTTP
+        ▼
+ BugForge MCP Server
+        │
+        ├── list_reproductions
+        ├── get_reproduction
+        ├── analyze_crash
+        ├── parse_stacktrace
+        ├── inspect_source
+        ├── get_fingerprint
+        ├── generate_report
+        └── get_project_status
+        │
+        ▼
+Existing BugForge Analysis Engine
+        │
+        ├── parsing
+        ├── security intelligence
+        ├── fingerprinting
+        ├── reproduction
+        ├── minimization
+        └── reporting
+        │
+        ▼
+Optional Amazon Bedrock + Strands Agent
+```
+
+## Alexa+ / MCP quick start
+
+```bash
+python -m pip install -e '.[mcp]'
+python -m bugforge.mcp_server --host 127.0.0.1 --port 8000
+```
+
+The Streamable HTTP endpoint is:
+
+```
+http://127.0.0.1:8000/mcp
+```
+
+CLI alias:
+
+```bash
+bugforge-mcp --host 127.0.0.1 --port 8000
+```
+
+See [docs/ALEXA_PLUS.md](docs/ALEXA_PLUS.md).
+
+## AWS Builder
+
+Install the optional AWS agent stack:
+
+```bash
+python -m pip install -e '.[aws]'
+export BUGFORGE_BEDROCK_MODEL=amazon.nova-lite-v1:0
+```
+
+BugForge uses Amazon Bedrock through the Strands Agents SDK while keeping deterministic analysis results as evidence. See [docs/AWS_BUILDER.md](docs/AWS_BUILDER.md).
+
+
 > **Turn crashes into actionable, reproducible bug investigations.**
 
 BugForge is a solo-built crash analysis toolkit for developers and security researchers. It combines crash parsing, security-oriented triage, deterministic deduplication, persistent caching, testcase minimization, bounded reproduction workers, fuzzer ingestion, SARIF export, runtime-aware parsing, and a local investigation dashboard.
