@@ -1,100 +1,155 @@
 # BugForge
 
-**Turn crashes into reproducible bugs, automatically.**
+> **Turn crashes into actionable, reproducible bug investigations.**
 
-BugForge is a solo-built crash analysis toolkit for developers and security researchers. It converts raw crash logs into structured findings, fingerprints similar failures, extracts stack information, and generates machine-readable reports.
+BugForge is a solo-built crash analysis toolkit for developers and security researchers. It combines crash parsing, security-oriented triage, deterministic deduplication, persistent caching, testcase minimization, bounded reproduction workers, fuzzer ingestion, SARIF export, runtime-aware parsing, and a local investigation dashboard.
 
-## Inspiration
+## Core pipeline
 
-Crash collection is only the first step. Large fuzzing campaigns can produce thousands of failures, including duplicates and noisy logs. BugForge makes the investigation workflow repeatable:
-
-Crash Log → Parse → Fingerprint → Deduplicate → Minimize → Reproduce → Report
+Crash / Fuzzer Output → Parse → Security Intelligence → Fingerprint → Cache / Deduplicate → Minimize → Reproduce → Report → SARIF / Dashboard
 
 ## Features
 
-- Crash-log parsing
-- Signal and fatal-error detection
-- Stack-trace extraction
+- Crash and stack-trace parsing
+- Security-oriented crash intelligence
 - Deterministic crash fingerprints
-- Duplicate-friendly finding IDs
-- JSON and Markdown reports
+- Persistent SQLite result cache
+- Testcase minimization
+- Parallel, timeout-bounded reproduction workers
+- Fuzzer crash-directory integration
+- SARIF 2.1.0 export
+- Runtime-aware parsers for generic logs, ASan, UBSan, and V8
+- JSON, Markdown, and self-contained HTML investigation reports
+- Local web dashboard with JSON API
 - CLI-first workflow
-- Extensible parser architecture
 - No mandatory external service
 
 ## Quick start
 
 Requirements: Python 3.10+
 
-Clone the repository and run:
-
     git clone https://github.com/hacrrrrrrr/BugForge.git
     cd BugForge
     python -m bugforge --help
+
+Analyze:
+
     python -m bugforge analyze examples/crashes/sample.log
-    python -m bugforge fingerprint examples/crashes/sample.log\n    python -m bugforge dashboard
 
-Install as a CLI during development:
+Security triage:
 
-    pip install -e .
-    bugforge --help
+    python -m bugforge intel examples/crashes/security-sample.log
 
-## Example
+Fingerprint:
 
-Input: examples/crashes/sample.log
+    python -m bugforge fingerprint examples/crashes/security-sample.log
 
-    [+] Crash type: SIGABRT
-    [+] Signal: SIGABRT
-    [+] Stack frames: 4
-    [+] Fingerprint: <deterministic hash>
-    [+] Report: reports/crash-report.json
+Investigation report:
+
+    python -m bugforge report examples/crashes/security-sample.log
+
+Scan fuzzer crashes:
+
+    python -m bugforge scan examples/crashes
+
+SARIF:
+
+    python -m bugforge sarif examples/crashes --output reports/bugforge.sarif
+
+Dashboard:
+
+    python -m bugforge dashboard --host 127.0.0.1 --port 8080
+
+Then open http://127.0.0.1:8080 locally.
+
+## Testcase minimization
+
+BugForge can repeatedly remove testcase lines while checking whether the configured command still exits non-zero:
+
+    python -m bugforge minimize testcase.js --command ./d8 --output testcase.min.js
+
+Use a safe local test command appropriate for your target. The minimizer does not claim a testcase is minimized unless the target continues to reproduce according to the configured predicate.
+
+## Reproduction workers
+
+Run multiple testcases with bounded parallel workers:
+
+    python -m bugforge reproduce --tests crashes/a crashes/b --workers 2 --timeout 5 ./target
+
+The command is executed as a fixed executable/argument prefix followed by each testcase.
+
+## Fuzzer integration
+
+The scanner recursively reads a crash directory and produces fingerprints for recognizable crash logs:
+
+    python -m bugforge scan ./crashes
+
+This adapter-friendly layer can consume outputs from libFuzzer, AFL++, Fuzzilli, and custom fuzzers without coupling the analysis core to one engine.
+
+## Runtime parsers
+
+The Python API exposes:
+
+    from bugforge.parsers import parse_runtime
+
+    parse_runtime(text, "asan")
+    parse_runtime(text, "ubsan")
+    parse_runtime(text, "v8")
+    parse_runtime(text, "generic")
+
+Runtime parsers add specialized extraction while sharing the common finding model.
+
+## SARIF
+
+BugForge emits SARIF 2.1.0 so findings can be consumed by compatible security/developer tooling:
+
+    python -m bugforge sarif ./crashes --output reports/bugforge.sarif
 
 ## Project structure
 
     BugForge/
     ├── bugforge/
-    │   ├── __init__.py
-    │   ├── __main__.py
     │   ├── cli.py
-    │   ├── models.py
     │   ├── parser.py
+    │   ├── parsers.py
+    │   ├── analyzer.py
     │   ├── fingerprint.py
-    │   └── reporter.py
+    │   ├── cache.py
+    │   ├── minimizer.py
+    │   ├── reproducer.py
+    │   ├── integrations.py
+    │   ├── sarif.py
+    │   ├── reporter.py
+    │   ├── html_report.py
+    │   └── dashboard.py
     ├── examples/
-    │   └── crashes/
     ├── tests/
     ├── docs/
-    ├── pyproject.toml
-    ├── LICENSE
-    └── README.md
+    └── pyproject.toml
 
 ## Development
 
-Run the test suite with:
-
-    python -m pytest
-
-The core is intentionally modular so new runtimes, crash formats, minimizers, reproduction backends, and dashboard components can be added independently.
+    python -m pytest -v
 
 ## Roadmap
 
-- [x] Crash parser
-- [x] Signal and fatal detection
-- [x] Crash fingerprinting
-- [x] JSON and Markdown reporting
-- [ ] Persistent result cache
-- [ ] Testcase minimization engine
-- [ ] Reproduction workers
-- [ ] Web dashboard
-- [ ] Fuzzer integrations
-- [ ] SARIF export
-- [ ] Additional runtime parsers
+All original hackathon roadmap items are implemented in the current repository:
+
+- [x] Persistent result cache
+- [x] Testcase minimization engine
+- [x] Reproduction workers
+- [x] Web dashboard
+- [x] Fuzzer integrations
+- [x] SARIF export
+- [x] Additional runtime parser layer
+- [x] Security-oriented crash intelligence
+- [x] HTML investigation reports
+
+Future work can extend the existing interfaces with more runtime-specific parsers, richer clustering, coverage-aware minimization, persistent job queues, and remote dashboards.
 
 ## About
 
-BugForge is a solo hackathon project by **Kritik Bhattarai**.
-
-Built for practical crash investigation, fuzzing workflows, and developer-friendly debugging.
+BugForge is a **solo hackathon project by Kritik Bhattarai**.
 
 **Sponsorship / inquiries:** hunterkritik@gmail.com
 
