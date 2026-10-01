@@ -58,9 +58,10 @@ def build_parser():
     p.add_argument("directory")
     p.add_argument("--output", default="reports/investigation")
 
-    p = sub.add_parser("demo", help="Run a polished end-to-end crash investigation demo")
+    p = sub.add_parser("demo", help="Run a real Bedrock + Strands agent investigation demo")
     p.add_argument("input", nargs="?", default="examples/crashes/sample.log")
     p.add_argument("--output", default="reports/demo.html")
+    p.add_argument("--prompt", default="Investigate this crash. Use the available BugForge analysis capabilities, distinguish observed evidence from hypotheses, and produce a concise security investigation.")
 
     p = sub.add_parser("dashboard", help="Start the local investigation dashboard")
     p.add_argument("--host", default="127.0.0.1")
@@ -93,34 +94,28 @@ def main(argv=None):
         if not path.is_file():
             build_parser().error(f"demo input file not found: {path}")
 
-        raw = path.read_text(encoding="utf-8", errors="replace")
-        finding = parse_crash(raw)
-        finding.fingerprint = fingerprint(finding)
-        intelligence = analyze_text(raw)
-        report = build_report(str(path), args.output)
+        try:
+            from .agent import build_agent
+        except Exception as exc:
+            build_parser().error(str(exc))
 
-        print("\n=== BugForge AI | End-to-End Investigation Demo ===")
-        print(f"Input:       {path}")
-        print("\n[1/5] Reproduction artifact")
-        print("      ✓ Loaded real crash/reproduction data")
-        print("[2/5] Crash analysis")
-        print(f"      ✓ Crash type: {finding.crash_type}")
-        print(f"      ✓ Signal: {finding.signal or 'N/A'}")
-        print(f"      ✓ Stack frames: {len(finding.frames)}")
-        print("[3/5] Deterministic fingerprint")
-        print(f"      ✓ {finding.fingerprint}")
-        print("[4/5] Crash intelligence")
-        if isinstance(intelligence, dict):
-            for key, value in intelligence.items():
-                print(f"      • {key}: {value}")
-        else:
-            print(f"      • {intelligence}")
-        print("[5/5] Investigation report")
-        print(f"      ✓ {report}")
-        print("\nMCP tools available for agent workflows:")
-        print("      list_reproductions → get_reproduction → analyze_crash")
-        print("      parse_stacktrace → get_fingerprint → generate_report")
-        print("\n✓ Demo completed using the real BugForge analysis engine.")
+        print("\n=== BugForge AI | Bedrock + Strands Agent ===")
+        print(f"Evidence: {path}")
+        print("Model:    " + __import__("os").getenv("BUGFORGE_BEDROCK_MODEL", "amazon.nova-lite-v1:0"))
+        print("Agent:    Strands")
+        print("Tools:    BugForge analysis engine")
+        print("\nUSER")
+        print(f"> {args.prompt}")
+        print("\nAGENT")
+        try:
+            agent = build_agent()
+            result = agent(f"{args.prompt}\n\nThe crash evidence is at this local path: {path}. "
+                           "Use BugForge tools if available. If filesystem tools are unavailable, "
+                           "state that limitation rather than inventing evidence.")
+            print(result)
+        except Exception as exc:
+            build_parser().error(f"agent execution failed: {exc}")
+        print("\n✓ Live agent execution completed.")
         return 0
 
     if args.command == "scan":
