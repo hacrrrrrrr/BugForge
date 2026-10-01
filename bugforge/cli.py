@@ -4,7 +4,7 @@ from pathlib import Path
 from .fingerprint import fingerprint
 from .parser import parse_crash
 from .reporter import json_report, markdown_report
-from .dashboard import serve
+from .dashboard import serve\nfrom .analyzer import analyze_text\nfrom .demo import build_report
 
 
 def build_parser():
@@ -23,7 +23,7 @@ def build_parser():
     dash.add_argument("--host", default="127.0.0.1")
     dash.add_argument("--port", type=int, default=8080)
 
-    fp = sub.add_parser("fingerprint", help="Print the crash fingerprint")
+    intel = sub.add_parser("intel", help="Run crash intelligence triage")\n    intel.add_argument("input")\n    demo = sub.add_parser("report", help="Generate a self-contained HTML investigation report")\n    demo.add_argument("input")\n    demo.add_argument("--output", default="reports/investigation.html")\n\n    fp = sub.add_parser("fingerprint", help="Print the crash fingerprint")
     fp.add_argument("input")
     return parser
 
