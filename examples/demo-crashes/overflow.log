@@ -1,0 +1,7 @@
+AddressSanitizer: heap-buffer-overflow
+Signal: SIGSEGV
+READ of size 8
+#0 vulnerable_parser::read_input()
+#1 parser::decode()
+#2 engine::process()
+#3 main
