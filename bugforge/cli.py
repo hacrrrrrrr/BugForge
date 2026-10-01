@@ -12,6 +12,8 @@ from .parser import parse_crash
 from .reproducer import reproduce_many
 from .reporter import json_report, markdown_report
 from .sarif import write_sarif
+from .workflow import investigate
+from .webapp import serve_dashboard
 
 
 def build_parser():
@@ -51,6 +53,10 @@ def build_parser():
     p.add_argument("--command", nargs="+", required=True)
     p.add_argument("--output")
     p.add_argument("--timeout", type=float, default=5.0)
+
+    p = sub.add_parser("investigate", help="Run the complete crash investigation pipeline")
+    p.add_argument("directory")
+    p.add_argument("--output", default="reports/investigation")
 
     p = sub.add_parser("dashboard", help="Start the local investigation dashboard")
     p.add_argument("--host", default="127.0.0.1")
