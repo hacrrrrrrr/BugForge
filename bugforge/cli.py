@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from .fingerprint import fingerprint
 from .parser import parse_crash
-from .reporter import json_report, markdown_report
+from .reporter import json_report, markdown_report\nfrom .cache import ResultCache\nfrom .sarif import write_sarif\nfrom .dashboard import serve
 
 def build_parser():
     parser = argparse.ArgumentParser(prog="bugforge", description="Turn crash logs into structured bug reports.")
@@ -11,7 +11,7 @@ def build_parser():
     analyze.add_argument("input")
     analyze.add_argument("--format", choices=("json", "markdown"), default="json")
     analyze.add_argument("--output")
-    fp = sub.add_parser("fingerprint", help="Print the crash fingerprint")
+    dash = sub.add_parser("dashboard", help="Start the local web dashboard")\n    dash.add_argument("--host", default="127.0.0.1")\n    dash.add_argument("--port", type=int, default=8080)\n    fp = sub.add_parser("fingerprint", help="Print the crash fingerprint")
     fp.add_argument("input")
     return parser
 
@@ -21,7 +21,7 @@ def main(argv=None):
     if not args.command:
         parser.print_help()
         return 0
-    path = Path(args.input)
+    if args.command == "dashboard":\n        serve(host=args.host, port=args.port)\n        return 0\n\n    path = Path(args.input)
     if not path.is_file():
         parser.error(f"input file not found: {path}")
     finding = parse_crash(path.read_text(encoding="utf-8", errors="replace"))
