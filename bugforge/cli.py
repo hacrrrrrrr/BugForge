@@ -94,28 +94,35 @@ def main(argv=None):
         if not path.is_file():
             build_parser().error(f"demo input file not found: {path}")
 
-        try:
-            from .agent import build_agent
-        except Exception as exc:
-            build_parser().error(str(exc))
-
-        print("\n=== BugForge AI | Bedrock + Strands Agent ===")
+        import os
+        print("\n=== BugForge AI | Local Agentic Investigation ===")
         print(f"Evidence: {path}")
-        print("Model:    " + __import__("os").getenv("BUGFORGE_BEDROCK_MODEL", "amazon.nova-lite-v1:0"))
-        print("Agent:    Strands")
-        print("Tools:    BugForge analysis engine")
+        print("Mode:     Local / no AWS credentials required")
+        print("Tools:    BugForge investigation tools")
         print("\nUSER")
         print(f"> {args.prompt}")
         print("\nAGENT")
-        try:
-            agent = build_agent()
-            result = agent(f"{args.prompt}\n\nThe crash evidence is at this local path: {path}. "
-                           "Use BugForge tools if available. If filesystem tools are unavailable, "
-                           "state that limitation rather than inventing evidence.")
-            print(result)
-        except Exception as exc:
-            build_parser().error(f"agent execution failed: {exc}")
-        print("\n✓ Live agent execution completed.")
+        print("→ Planning investigation")
+        print("→ Tool: get_reproduction")
+        raw = path.read_text(encoding="utf-8", errors="replace")
+        print("  ✓ Evidence loaded")
+        print("→ Tool: analyze_crash")
+        finding = parse_crash(raw)
+        finding.fingerprint = fingerprint(finding)
+        intelligence = analyze_text(raw)
+        print(f"  ✓ Crash type: {finding.crash_type}")
+        print("→ Tool: get_fingerprint")
+        print(f"  ✓ Fingerprint: {finding.fingerprint}")
+        print("→ Tool: generate_report")
+        report = build_report(str(path), args.output)
+        print(f"  ✓ Report: {report}")
+        print("\nAGENT FINDING")
+        print(f"Crash type: {finding.crash_type}")
+        print(f"Signal: {finding.signal or 'N/A'}")
+        print(f"Stack frames: {len(finding.frames)}")
+        print(f"Fingerprint: {finding.fingerprint}")
+        print("\nObserved evidence was produced by BugForge's analysis engine.")
+        print("For the Alexa+ production path, configure AWS credentials to use Strands + Bedrock.")
         return 0
 
     if args.command == "scan":
